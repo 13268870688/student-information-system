@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.sims.dao.UserDao">
+    <resultMap id="UserResultMap" type="com.system.sims.beans.User">
+        <id property="userNumber" column="user_number"/>
+        <result property="identitys" column="identitys"/>
+        <result property="passwords" column="passwords"/>
+    </resultMap>
+    <insert id="insertUser">
+        insert into users values (#{userNumber},#{identitys},#{passwords})
+    </insert>
+    <update id="updateUser">
+        update users
+        set
+            identitys = #{identitys},
+            passwords = #{passwords}
+        where user_number = #{userNumber}
+    </update>
+    <delete id="deleteUserById">
+        delete from users where user_number = #{id}
+    </delete>
+
+    <select id="getByUserNumber" resultType="com.system.sims.beans.User" resultMap="UserResultMap">
+        select user_number,identitys,passwords
+        from users
+        where user_number = #{username}
+    </select>
+    <select id="countUser" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM users
+    </select>
+</mapper>

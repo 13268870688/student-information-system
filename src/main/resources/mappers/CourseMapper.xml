@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.sims.dao.CourseDao">
+    <resultMap id="CourseResultMap" type="com.system.sims.beans.Course">
+        <id column="cno" property="cno"/>
+        <result column="cname" property="cname"/>
+        <result column="credit" property="credit"/>
+        <result column="tno" property="tno"/>
+        <result column="test_time" property="testTime"/>
+        <result column="begin_time" property="beginTime"/>
+        <result column="class_hour" property="classHour"/>
+        <result column="class_location" property="classLocation"/>
+    </resultMap>
+
+    <insert id="insertCourse">
+        insert into course(cname, credit, tno, test_time, begin_time, class_hour, class_location) values (#{cname},#{credit},#{tno},#{testTime},#{beginTime},#{classHour},#{classLocation})
+    </insert>
+
+    <update id="updateCourse">
+        update course
+        set
+            cname = #{cname},
+            credit = #{credit},
+            tno = #{tno},
+            test_time = #{testTime},
+            begin_time = #{beginTime},
+            class_hour = #{classHour},
+            class_location = #{classLocation}
+        where cno = #{cno}
+    </update>
+    <delete id="deleteCourseById">
+        delete from course
+        where cno = #{id}
+    </delete>
+    <delete id="deleteCourseByCondition">
+        delete
+        from course
+        <where>
+            <if test="keys != null">
+                <foreach collection="keys" index="key" item="value" separator="and">
+                    ${key} = #{value}
+                </foreach>
+            </if>
+            <if test="keys == null">
+                cno = -1
+            </if>
+        </where>
+
+    </delete>
+    <select id="getCourseById" resultType="com.system.sims.beans.Course" resultMap="CourseResultMap">
+        select  *
+        from course
+        where cno = #{id}
+    </select>
+    <select id="getCourseByCondition" resultType="com.system.sims.beans.Course" resultMap="CourseResultMap">
+        select *
+        from course
+        <where>
+            <if test="RangeType == 1">
+                ${key} &gt; #{value}
+            </if>
+            <if test="RangeType == 2">
+                ${key} &lt; #{value}
+            </if>
+            <if test="RangeType == 3">
+                ${key} &lt;= #{value}
+            </if>
+            <if test="RangeType == 4">
+                ${key} &gt;= #{value}
+            </if>
+            <if test="RangeType == 5">
+                ${key} = #{value}
+            </if>
+        </where>
+    </select>
+    <select id="countCourse" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM course
+    </select>
+</mapper>

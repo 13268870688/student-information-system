@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.sims.dao.IdDao">
+    <resultMap id="IdMap" type="com.system.sims.beans.Id">
+        <result column="stu_length" property="stuLength"/>
+        <result column="teacher_length" property="teacherLength"/>
+        <result property="day" column="update_day"/>
+    </resultMap>
+    <update id="setId">
+        UPDATE id_length
+        set
+            stu_length = #{stuLength},
+            teacher_length = #{teacherLength}
+    </update>
+    <update id="setDay">
+        update id_length
+        set
+            update_day = #{day}
+    </update>
+
+
+    <select id="getId" resultType="com.system.sims.beans.Id" resultMap="IdMap">
+        select *
+        from id_length
+    </select>
+
+
+</mapper>

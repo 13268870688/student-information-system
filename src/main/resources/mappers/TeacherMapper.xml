@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.sims.dao.TeacherDao">
+    <resultMap id="teacherResultMap" type="com.system.sims.beans.Teacher">
+       <id column="tno" property="tno" />
+        <result column="tname" property="tname"/>
+        <result column="ssex" property="ssex"/>
+        <result column="dno" property="dno"/>
+        <result column="study" property="study"/>
+        <result column="direction" property="direction"/>
+        <result column="birth_date" property="birthDate"/>
+        <result column="job" property="job"/>
+    </resultMap>
+
+    <resultMap id="teacherCourseMap" type="com.system.sims.beans.TeacherCourse">
+        <result property="dno" column="dno"/>
+        <result property="tno" column="tno"/>
+        <result property="tname" column="tname"/>
+        <result property="cno" column="cno"/>
+        <result property="cname" column="cname"/>
+    </resultMap>
+    <insert id="insertTeacher">
+        insert into teacher values(#{tno},#{tname},#{ssex},#{dno},#{study},#{direction},#{birthDate},#{job})
+    </insert>
+    <update id="updateTeacher">
+        update teacher
+        set
+            tname = #{tname},
+            ssex = #{ssex},
+            dno = #{dno},
+            study = #{study},
+            direction = #{direction},
+            birth_date = #{birthDate},
+            job = #{job}
+        where tno = #{tno}
+    </update>
+    <delete id="deleteTeacherById">
+        delete from teacher where tno = #{id}
+    </delete>
+
+    <select id="searchTeacher" resultType="com.system.sims.beans.Teacher" resultMap="teacherResultMap">
+        select *
+        from teacher
+        <where>
+            <if test="keys != null">
+                <foreach collection="keys" index="key" item="value" separator="or">
+                    <if test="value != ''">
+                        ${key} like '%'||#{value}||'%'
+                    </if>
+                </foreach>
+            </if>
+
+            <if test="rangeMap!=null">
+                <foreach collection="rangeMap" index="key" item="value" separator="and">
+                    ${key} &gt;= #{value.min} and ${key} &lt;= #{value.max}
+                </foreach>
+            </if>
+
+        </where>
+        limit #{pageSize}
+        offset (#{pageNum}-1)*#{pageSize}
+    </select>
+    <select id="searchTeacherCourse" resultType="com.system.sims.beans.StudentCourse" resultMap="teacherCourseMap">
+        SELECT teacher.tno,tname,cno,cname,dno
+        FROM teacher,course
+        <where>
+            teacher.tno = course.tno and
+            <if test="keys != null">(
+
+                <if test="m = 0"/>
+                <foreach collection="keys" index="key" item="value" separator="or">
+                    <if test="key == 'tno' &amp;&amp; value != ''">
+                        <if test="m = m+1"/>
+                        teacher.tno like '%'||#{value}||'%'
+                    </if>
+
+                    <if test="key != 'tno' &amp;&amp; value != ''">
+                        <if test="m = m+1"/>
+                        ${key} like '%'||#{value}||'%'
+                    </if>
+                </foreach>
+                <if test="m == 0">
+                    1
+                </if>
+                )
+            </if>
+
+            <if test="rangeMap!=null">
+                <foreach collection="rangeMap" index="key" item="value" separator="and">
+                    <if test="key == 'tno'">
+                        teacher.tno &gt;= #{value.min} and teacher.tno &lt;= #{value.max}
+                    </if>
+
+                    <if test="key != 'tno'">
+                        ${key} &gt;= #{value.min} and ${key} &lt;= #{value.max}
+                    </if>
+                </foreach>
+            </if>
+
+        </where>
+        limit #{pageSize}
+        offset (#{pageNum}-1)*#{pageSize}
+    </select>
+    <select id="getTeacherById" resultType="com.system.sims.beans.Student" resultMap="teacherResultMap">
+        select *
+        from teacher
+        where tno = #{id}
+    </select>
+    <select id="countTeacher" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM teacher
+    </select>
+</mapper>

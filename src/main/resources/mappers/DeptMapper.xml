@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.sims.dao.DeptDao">
+    <resultMap id="deptResultMap" type="com.system.sims.beans.Dept">
+        <id property="dname" column="dname"/>
+        <result property="dno" column="dno"/>
+        <result property="inf" column="inf"/>
+    </resultMap>
+    <insert id="insertDept">
+        insert into dept values (#{dno},#{inf},#{dname})
+    </insert>
+    <update id="updateDept">
+        update dept
+        set
+            inf = #{inf},
+            dname = #{dname}
+        where dno = #{dno}
+    </update>
+    <delete id="deleteDeptById">
+        delete from dept where dno = #{id}
+    </delete>
+
+    <select id="searchDept" resultType="com.system.sims.beans.Dept">
+        select *
+        from dept
+        <where>
+            <if test="keys != null">
+                <foreach collection="keys" index="key" item="value" separator="or">
+                    <if test="value != ''">
+                        ${key} like '%'||#{value}||'%'
+                    </if>
+                </foreach>
+            </if>
+
+            <if test="rangeMap!=null">
+                <foreach collection="rangeMap" index="key" item="value" separator="and">
+                    ${key} &gt;= #{value.min} and ${key} &lt;= #{value.max}
+                </foreach>
+            </if>
+
+        </where>
+        limit #{pageSize}
+        offset (#{pageNum}-1)*#{pageSize}
+    </select>
+    <select id="getDeptById" resultType="com.system.sims.beans.Dept" resultMap="deptResultMap">
+        select *
+        from dept
+        where dno = #{id}
+    </select>
+    <select id="getMax" resultType="java.lang.String">
+        select max(dno)
+        from dept
+    </select>
+    <select id="countDept" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM dept
+    </select>
+
+
+</mapper>

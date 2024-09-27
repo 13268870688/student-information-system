@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.sims.dao.StudentDao">
+
+    <resultMap id="studentResultMap" type="com.system.sims.beans.Student">
+        <id column="sno" property="sno"/>
+        <result column="sname" property="sname"/>
+        <result column="ssex" property="ssex"/>
+        <result column="adminsion_grade" property="adminsionGrade"/>
+        <result column="sdept" property="sdept"/>
+        <result column="birth_date" property="birthDate" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <resultMap id="studentCourseMap" type="com.system.sims.beans.StudentCourse">
+        <id property="cno" column="cno"/>
+        <result property="cname" column="cname"/>
+        <result property="sno" column="sno"/>
+        <result property="sname" column="sname"/>
+        <result property="sdept" column="sdept"/>
+    </resultMap>
+    <resultMap id="studentGradeMap" type="com.system.sims.beans.StudentGrade">
+        <id property="cno" column="cno"/>
+        <result property="cname" column="cname"/>
+        <result property="sno" column="sno"/>
+        <result property="sname" column="sname"/>
+        <result property="testGrade" column="test_grade"/>
+        <result property="finalGrade" column="final_grade"/>
+        <result property="generalGrade" column="general_grade"/>
+    </resultMap>
+    <insert id="insertStudent">
+        insert into student
+        values (#{sno},#{sname},#{ssex},#{adminsionGrade},#{sdept},#{birthDate})
+    </insert>
+    <insert id="insertStudentCourse">
+        insert into student_course(sno,cno)
+        values (#{sno},#{courseId})
+    </insert>
+    <update id="updateStudent">
+        update student
+        set
+            sname = #{sname},
+            ssex = #{ssex},
+            adminsion_grade = #{adminsionGrade},
+            sdept = #{sdept},
+            birth_date = #{birthDate}
+        where sno = #{sno}
+    </update>
+    <update id="updateStudentCourse">
+        update student_course
+        set
+            general_grade = #{generalGrade},
+            test_grade = #{testGrade},
+            final_grade = #{finalGrade}
+        where sno = #{sno} and cno = #{cno}
+    </update>
+    <delete id="deleteStudentById">
+        delete from student where sno = #{id}
+    </delete>
+    <delete id="deleteStudentCourse">
+        delete from student_course where cno=#{courseId} and sno=#{sno}
+    </delete>
+    <delete id="deleteStudentCourseByCondition">
+        delete
+        from student_course
+        <where>
+            <if test="keys != null">
+                <foreach collection="keys" index="key" item="value" separator="and">
+                    ${key} = #{value}
+                </foreach>
+            </if>
+            <if test="keys == null">
+                cno = -1
+            </if>
+        </where>
+    </delete>
+
+    <select id="getAllByGroup" resultType="com.system.sims.beans.Student" resultMap="studentResultMap">
+        select *
+        from student
+        limit #{pageSize}
+        offset (#{pageNum}-1)*#{pageSize}
+    </select>
+    <select id="FuzzySearch" resultType="com.system.sims.beans.Student" resultMap="studentResultMap">
+        select *
+        from student
+        <where>
+            <if test="keys != null">
+                <foreach collection="keys" index="key" item="value" separator="or">
+                    <if test="value != ''">
+                        ${key} like '%'||#{value}||'%'
+                    </if>
+                </foreach>
+            </if>
+
+            <if test="rangeMap!=null">
+                <foreach collection="rangeMap" index="key" item="value" separator="and">
+                    ${key} &gt;= #{value.min} and ${key} &lt;= #{value.max}
+                </foreach>
+            </if>
+
+        </where>
+        limit #{pageSize}
+        offset (#{pageNum}-1)*#{pageSize}
+    </select>
+    <select id="searchStudentCourse" resultType="com.system.sims.beans.Student" resultMap="studentCourseMap">
+        SELECT course.cno,cname,student.sno,sname,sdept
+        FROM student_course,student,course
+        <where>
+            student_course.sno = student.sno
+            and course.cno = student_course.cno
+            and
+            <if test="keys != null">(
+                <if test="m = 0"/>
+                <foreach collection="keys" index="key" item="value" separator="or">
+                    <if test="key == 'cno' &amp;&amp;value != ''">
+                        <if test="m = m + 1"/>
+                        course.cno like '%'||#{value}||'%'
+                    </if>
+                    <if test="key == 'sno' &amp;&amp;value != ''">
+                        <if test="m = m + 1"/>
+                        student.sno like '%'||#{value}||'%'
+                    </if>
+                    <if test="key != 'cno' &amp;&amp; key != 'sno' &amp;&amp; value != ''">
+                        <if test="m = m + 1"/>
+                        ${key} like '%'||#{value}||'%'
+                    </if>
+                </foreach>
+
+                <if test="m == 0">
+                    1
+                </if>
+            )
+            </if>
+
+            <if test="rangeMap!=null">
+                <foreach collection="rangeMap" index="key" item="value" separator="and">
+                    <if test="key == 'cno'">
+                        course.cno &gt;= #{value.min} and course.cno &lt;= #{value.max}
+                    </if>
+                    <if test="key == 'sno'">
+                         student.sno &gt;= #{value.min} and student.sno &lt;= #{value.max}
+                    </if>
+                    <if test="key != 'cno' &amp;&amp; key != 'sno'">
+                         ${key} &gt;= #{value.min} and ${key} &lt;= #{value.max}
+                    </if>
+                </foreach>
+            </if>
+
+
+
+        </where>
+        limit #{pageSize}
+        offset (#{pageNum}-1)*#{pageSize}
+    </select>
+    <select id="searchStudentGrade" resultType="com.system.sims.beans.StudentGrade" resultMap="studentGradeMap">
+        SELECT course.cno,cname,student.sno,sname,general_grade,test_grade,final_grade
+        FROM student_course,student,course
+        <where>
+            student_course.sno = student.sno
+            and course.cno = student_course.cno
+            and
+            <if test="keys != null">
+            (
+                    <if test="m = 0"/>
+                    <foreach collection="keys" index="key" item="value" separator="or">
+                        <if test="key == 'cno' &amp;&amp;value != ''">
+                            <if test="m = m + 1"/>
+                             course.cno like '%'||#{value}||'%'
+                        </if>
+                        <if test="key == 'sno' &amp;&amp;value != ''">
+                            <if test="m = m + 1"/>
+                             student.sno like '%'||#{value}||'%'
+                        </if>
+                        <if test="key != 'cno' &amp;&amp; key != 'sno' &amp;&amp; value != ''">
+                            <if test="m = m + 1"/>
+                             ${key} like '%'||#{value}||'%'
+                        </if>
+                    </foreach>
+
+                    <if test="m == 0">
+                        1
+                    </if>
+            )
+            </if>
+
+            <if test="rangeMap!=null">
+
+                <foreach collection="rangeMap" index="key" item="value" separator="and">
+                    <if test="key == 'cno'">
+                         course.cno &gt;= #{value.min} and course.cno &lt;= #{value.max}
+                    </if>
+                    <if test="key == 'sno'">
+                         student.sno &gt;= #{value.min} and student.sno &lt;= #{value.max}
+                    </if>
+                    <if test="key != 'cno' &amp;&amp; key != 'sno'">
+                         ${key} &gt;= #{value.min} and ${key} &lt;= #{value.max}
+                    </if>
+                </foreach>
+
+            </if>
+
+        </where>
+        ORDER BY final_grade DESC nulls last
+        limit #{pageSize}
+        offset (#{pageNum}-1)*#{pageSize}
+    </select>
+    <select id="getStudentById" resultType="com.system.sims.beans.Student" resultMap="studentResultMap">
+        select *
+        from student
+        where sno = #{id}
+    </select>
+    <select id="searchStudentByCourseId" resultType="com.system.sims.beans.Student" resultMap="studentResultMap">
+        SELECT student.sno,sname,ssex,adminsion_grade,sdept,birth_date
+        FROM student,student_course
+        WHERE student.sno = student_course.sno AND student_course.cno = #{courseId}
+    </select>
+    <select id="getStudentGrade" resultType="com.system.sims.beans.StudentGrade" resultMap="studentGradeMap">
+        SELECT course.cno,cname,student.sno,sname,general_grade,test_grade,final_grade
+        FROM student_course,student,course
+        where  student_course.sno = student.sno
+          and course.cno = student_course.cno
+        and course.cno = #{cno}
+            and student.sno = #{sno}
+    </select>
+    <select id="countStudent" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM student
+    </select>
+
+</mapper>
